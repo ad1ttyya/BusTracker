@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Attendance Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        #userList {
+            margin-bottom: 20px;
+        }
+        .user {
+            margin-bottom: 10px;
+        }
+        button {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>College Attendance Tracker</h1>
+    <h2 id="currentDate"></h2>
+    <div id="userList"></div>
+    <input type="text" id="newUser" placeholder="Enter new user name">
+    <button onclick="addUser()">Add User</button>
+
+    <script>
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+
+        function updateDate() {
+            const dateElement = document.getElementById('currentDate');
+            dateElement.textContent = moment().format('MMMM D, YYYY');
+        }
+
+        function renderUsers() {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user';
+                userDiv.innerHTML = `
+                    ${user.name}: 
+                    <button onclick="updateAttendance('${user.name}', true)">Attending</button>
+                    <button onclick="updateAttendance('${user.name}', false)">Not Attending</button>
+                    <span>${user.attending ? 'Attending' : 'Not Attending'}</span>
+                `;
+                userList.appendChild(userDiv);
+            });
+        }
+
+        function addUser() {
+            const newUserInput = document.getElementById('newUser');
+            const name = newUserInput.value.trim();
+            if (name) {
+                users.push({ name, attending: false });
+                newUserInput.value = '';
+                saveUsers();
+                renderUsers();
+            }
+        }
+
+        function updateAttendance(name, attending) {
+            const user = users.find(u => u.name === name);
+            if (user) {
+                user.attending = attending;
+                saveUsers();
+                renderUsers();
+            }
+        }
+
+        function saveUsers() {
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        function clearAttendance() {
+            users.forEach(user => user.attending = false);
+            saveUsers();
+            renderUsers();
+        }
+
+        function scheduleReset() {
+            const now = moment();
+            const nextReset = moment().set({ hour: 11, minute: 0, second: 0, millisecond: 0 });
+            if (now.isAfter(nextReset)) {
+                nextReset.add(1, 'day');
+            }
+            const msUntilReset = nextReset.diff(now);
+            setTimeout(() => {
+                clearAttendance();
+                updateDate();
+                scheduleReset();
+            }, msUntilReset);
+        }
+
+        updateDate();
+        renderUsers();
+        scheduleReset();
+
+        // Update date at midnight
+        setInterval(() => {
+            if (moment().hour() === 0 && moment().minute() === 0) {
+                updateDate();
+            }
+        }, 60000); // Check every minute
+    </script>
+</body>
+</html>

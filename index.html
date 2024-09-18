@@ -24,6 +24,13 @@
         button {
             margin-right: 10px;
         }
+        .remove-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -52,6 +59,7 @@
                     <button onclick="updateAttendance('${user.name}', true)">Attending</button>
                     <button onclick="updateAttendance('${user.name}', false)">Not Attending</button>
                     <span>${user.attending ? 'Attending' : 'Not Attending'}</span>
+                    <button class="remove-btn" onclick="removeUser('${user.name}')">Remove</button>
                 `;
                 userList.appendChild(userDiv);
             });
@@ -75,6 +83,12 @@
                 saveUsers();
                 renderUsers();
             }
+        }
+
+        function removeUser(name) {
+            users = users.filter(user => user.name !== name);
+            saveUsers();
+            renderUsers();
         }
 
         function saveUsers() {
